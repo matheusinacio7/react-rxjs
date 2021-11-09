@@ -1,25 +1,85 @@
-import React from 'react';
-import logo from './logo.svg';
+import {  useEffect, useState } from 'react';
 import './App.css';
+import { BehaviorSubject } from 'rxjs';
+
+interface ModalContexts {
+  'none': { },
+
+  'welcome': { };
+
+  'confirmation': {
+    bodyText: string;
+    confirmationCTA: string;
+  };
+}
+
+const ModalSubject = new BehaviorSubject({ id: 'none' } as any);
+
+const ModalManager = {
+  open: <T extends keyof ModalContexts>({ id, ...context } : { id: T } & ModalContexts[T]) => {
+    ModalSubject.next({ id, ...context });
+  },
+  subscribe: ModalSubject.subscribe,
+}
+
+const useModal = <T extends keyof ModalContexts>(id: T) : [boolean, ModalContexts[T]] => {
+  const [modalContext, setModalContext] = useState<any>({ isOpen: false, context: {} });
+
+  useEffect(() => {
+    ModalSubject.subscribe(({ id: openedModalId, ...context }) => {
+      setModalContext({
+        isOpen: openedModalId === id,
+        context,
+      });
+    });
+  }, [id]);
+
+  return [modalContext.isOpen, modalContext.context];
+}
+
+const WelcomeModal = () => {
+  const [isOpen] = useModal('welcome');
+
+  return isOpen
+    ? <div>Welcome!</div>
+    : null;
+};
+
+const ConfirmationModal = () => {
+  const [isOpen, { bodyText, confirmationCTA }] = useModal('confirmation');
+
+  return isOpen
+    ? (
+      <div>
+        <h1>Confirma</h1>
+        <p>{ bodyText }</p>
+        <button>{ confirmationCTA }</button>
+      </div>
+      )
+    : null;
+};
 
 function App() {
   return (
-    <div className="App">
-      <header className="App-header">
-        <img src={logo} className="App-logo" alt="logo" />
-        <p>
-          Edit <code>src/App.tsx</code> and save to reload.
-        </p>
-        <a
-          className="App-link"
-          href="https://reactjs.org"
-          target="_blank"
-          rel="noopener noreferrer"
-        >
-          Learn React
-        </a>
-      </header>
-    </div>
+    <main>
+      <button
+        onClick={ () => {
+          ModalManager.open({ id: 'welcome' });
+        } }
+      >
+        Abrir modal sem contexto
+      </button>
+      <button
+        onClick={ () => {
+          ModalManager.open({ id: 'confirmation', bodyText: 'Deseja fazer isso mesmo?', confirmationCTA: 'Sim' });
+        } }
+      >
+        Abrir modal com contexto
+      </button>
+
+      <WelcomeModal />
+      <ConfirmationModal />
+    </main>
   );
 }
 
