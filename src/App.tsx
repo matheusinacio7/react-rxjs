@@ -3,8 +3,6 @@ import './App.css';
 import { BehaviorSubject } from 'rxjs';
 
 interface ModalContexts {
-  'none': { },
-
   'welcome': { };
 
   'confirmation': {
@@ -13,7 +11,7 @@ interface ModalContexts {
   };
 }
 
-const ModalSubject = new BehaviorSubject({ id: 'none' } as any);
+const ModalSubject = new BehaviorSubject({ id: '' } as any);
 
 const ModalManager = {
   open: <T extends keyof ModalContexts>({ id, ...context } : { id: T } & ModalContexts[T]) => {
@@ -71,7 +69,8 @@ function App() {
       </button>
       <button
         onClick={ () => {
-          ModalManager.open({ id: 'confirmation', bodyText: 'Deseja fazer isso mesmo?', confirmationCTA: 'Sim' });
+          // ModalManager.open({ id: 'confirmation', bodyText: 'Deseja fazer isso mesmo?', confirmationCTA: 'Sim' });
+          ModalManager.open({ id: 'confirmation', bodyText: 'tamo nois', confirmationCTA: 'eh isso' });
         } }
       >
         Abrir modal com contexto
